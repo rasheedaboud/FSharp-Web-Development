@@ -17,6 +17,19 @@ Today we will go over a couple options for state management in Feliz. We will st
 
 For this demonstration, we will build a simple temperature converter form. You will be able to input a temperature in Celsius and get the equivalent in Fahrenheit, and vice versa. Let's start by setting up the model, which will represent the state for our form. First we will do it using ```useElmish``` and then we will re-implement it with ```useState```. Hopefully this will illustrate how to use them effectively.
 
+## Prerequisites
+
+Grab the code form [Part 3](https://github.com/rasheedaboud/FSharp-Web-Development/tree/main/Part%203%20-Building%20UI). It should contain all the required bits to get going.
+
+Here is a short list of the requirements to run the app:
+
+- .Net 8
+- Node ^18
+- npm | pnpm | yarn
+- [Visual Studio Code](https://code.visualstudio.com/) with [Ionide](http://ionide.io/)
+- [Highlight templates in F#](https://marketplace.visualstudio.com/items?itemName=alfonsogarciacaro.vscode-template-fsharp-highlight)
+
+
 ## Elmish Approach
 
 ### Setting Up the Model

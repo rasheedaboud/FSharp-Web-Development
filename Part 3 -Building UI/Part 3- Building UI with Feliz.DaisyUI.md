@@ -8,7 +8,7 @@ Let's go!
 
 ## Prerequisites
 
-Grab the code form [Part 2](https://github.com/rasheedaboud/FSharp-Web-Development/tree/main/Part-2%20Environment%20Variables). It should contain all the required bits to get going.
+Grab the code form [Part 2](https://github.com/rasheedaboud/FSharp-Web-Development/tree/main/Part%202%20-Environment%20Variables). It should contain all the required bits to get going.
 
 Here is a short list of the requirements to run the app:
 

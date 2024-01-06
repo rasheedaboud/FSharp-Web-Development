@@ -17,6 +17,19 @@ Both are dead simple to use, each having it's own pro and cons.
 
 Grab the code from the last part and lets get going!
 
+## Prerequisites
+
+Grab the code form [Part 4](https://github.com/rasheedaboud/FSharp-Web-Development/tree/main/Part%204%20-State%20Management). It should contain all the required bits to get going.
+
+Here is a short list of the requirements to run the app:
+
+- .Net 8
+- Node ^18
+- npm | pnpm | yarn
+- [Visual Studio Code](https://code.visualstudio.com/) with [Ionide](http://ionide.io/)
+- [Highlight templates in F#](https://marketplace.visualstudio.com/items?itemName=alfonsogarciacaro.vscode-template-fsharp-highlight)
+
+
 ## Fable.Fetch
 
 Lets dive right in and install the required nuget packages.

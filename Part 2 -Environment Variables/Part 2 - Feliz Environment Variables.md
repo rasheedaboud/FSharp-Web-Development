@@ -10,7 +10,7 @@ Let's dive in!
 
 ## Prerequisites
 
-Grab the code form [Part 1](https://github.com/rasheedaboud/FSharp-Web-Development/tree/main/Part-1). It should contain all the required bits to get going.
+Grab the code form [Part 1](https://github.com/rasheedaboud/FSharp-Web-Development/tree/main/Part%201%20-Getting%20Started). It should contain all the required bits to get going.
 
 Here is a short list of the requirements to run the app:
 
