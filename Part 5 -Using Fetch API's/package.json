@@ -1,0 +1,25 @@
+{
+  "private": true,
+  "scripts": {
+    "start": "dotnet tool restore && dotnet fable watch src -e .jsx --runFast vite",
+    "build": "dotnet tool restore && dotnet fable src --run vite build",
+    "clean": "dotnet fable clean src --yes"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "use-sync-external-store": "1.2.0",
+    "yup": "^1.3.3"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^3.1.0",
+    "autoprefixer": "^10.4.16",
+    "daisyui": "^4.4.24",
+    "postcss": "^8.4.32",
+    "tailwindcss": "^3.4.0",
+    "vite": "^4.1.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
