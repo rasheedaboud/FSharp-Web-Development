@@ -289,6 +289,87 @@ Run the app with ```pnpm start``` and navigate to ```/#elmish-converter``` and `
 
 In the final solution I will save both these approaches in separate files so you will have examples of both side by side.
 
+### Update **2024-1-7**
+
+A colleague of mine was kind enough that I forgot an important concept regarding state management in react,  ``useContext``!! For those of you not familiar with this react hook, it allows you to pass state from a parent component to a child and avoids prop drilling (ie: passing state down from component to component.)
+
+Feliz has a mechanism to use this hook in your apps. I've updated the repository to include a an example.
+
+In a file called `AppContext.fs`:
+
+```fsharp
+[<RequireQualifiedAccess>]
+module AppContext
+
+open Feliz
+
+type AppState = { message: string }
+
+let appState = { message = "Hello" }
+
+let appContext = React.createContext ()
+
+[<ReactComponent>]
+let MessageContext (child: ReactElement) =
+  let (state, setState) = React.useState (appState)
+  React.contextProvider (appContext, (state, setState), React.fragment [ child ])
+```
+
+Update the `Home` and `Router` component with the following:
+
+```fsharp
+  [<ReactComponent>]
+  static member Home() =
+    let (context, setState) = React.useContext (AppContext.appContext)
+
+    let logState () = console.log (context.message)
+
+    React.useEffect (logState, [| box context |])
+    React.useEffect ((fun () -> setState ({ message = "Another Message" })), [||])
+
+
+    Html.div [
+      prop.className "container mx-auto"
+      prop.children [
+        Html.h1 (sprintf "Home Page - %s" context.message)
+        Daisy.button.button [
+          prop.text "Click Me!!"
+          prop.onClick (fun _ -> setState ({ message = "This is a message from the context" }))
+        ]
+      ]
+    ]
+```
+
+```fsharp
+  [<ReactComponent>]
+  static member Router() =
+    let (currentUrl, updateUrl) = React.useState (Router.currentUrl ())
+
+    AppContext.MessageContext(
+      Html.div [
+        Components.NavBar()
+        React.router [
+          router.onUrlChanged updateUrl
+          router.children [
+            match currentUrl with
+            | [] -> Components.Home()
+            | [ "elmish-converter" ] -> ElmishConverter.TemperatureConverter()
+            | [ "converter" ] -> Converter.Converter()
+            | otherwise -> Html.h1 "Not found"
+          ]
+        ]
+      ]
+    )
+```
+
+We create a react context with the `type AppState = { message: string }` state. We then wrap the router component in the context provider. THis makes our app state globally available. 
+
+In the Home component we request the current `AppState` and are given the state as well as a function to update it.
+
+[Compositional IT](https://www.compositional-it.com/news-blog/component-communication-using-react-context/) and [Feliz](https://zaid-ajaj.github.io/Feliz/#/Feliz/React/ContextPropagation) both give wonderful examples of how to use the `useContext` hook. In our example we use the context with a `useSate` hook, however you can wire this up tho sue elmish instead.
+
+
+
 ### Conclusion
 
 Throughout this series, we started with getting set up with Feliz and Fable, added environment variables, and constructed UI elements using Feliz.DaisyUI. With the addition of state management using `useElmish` and `useState`, we've laid a solid foundation for building powerful and complex web applications with F#. Remember that the magic of F# isn't just its succinctness; it's the robust functional programming paradigm it supports that enables us to build reliable applications.

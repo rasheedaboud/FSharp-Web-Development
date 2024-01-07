@@ -7,6 +7,7 @@ open Fable.React
 open Feliz.DaisyUI
 open Feliz.DaisyUI.Operators
 open ElmishConverter
+open Browser
 
 [<AutoOpen>]
 module JsxHelpers =
@@ -26,14 +27,22 @@ type Components =
             Daisy.button.button [
               button.square
               button.ghost
-              prop.children [ Html.i [ prop.className "fa-solid fa-gear" ++ color.textSuccess ] ]
+              prop.children [
+                Html.i [
+                  prop.className "fa-solid fa-gear"
+                  ++ color.textSuccess
+                ]
+              ]
             ]
           ]
         ]
         Html.div [
           prop.className "flex-1 px-2 mx-2"
           prop.children [
-            Html.span [ prop.className "text-lg font-bold"; prop.text "Feliz Converter" ]
+            Html.span [
+              prop.className "text-lg font-bold"
+              prop.text "Feliz Converter"
+            ]
           ]
         ]
       ]
@@ -41,22 +50,43 @@ type Components =
 
   [<ReactComponent>]
   static member Home() =
-    Html.div [ prop.className "container mx-auto"; prop.children [ Html.h1 "Home Page" ] ]
+    let (context, setState) = React.useContext (AppContext.appContext)
+
+    let logState () = console.log (context.message)
+
+    React.useEffect (logState, [| box context |])
+    React.useEffect ((fun () -> setState ({ message = "Another Message" })), [||])
+
+
+    Html.div [
+      prop.className "container mx-auto"
+      prop.children [
+        Html.h1 (sprintf "Home Page - %s" context.message)
+        Daisy.button.button [
+          prop.text "Click Me!!"
+          prop.onClick (fun _ -> setState ({ message = "This is a message from the context" }))
+        ]
+      ]
+    ]
+
+
 
   [<ReactComponent>]
   static member Router() =
     let (currentUrl, updateUrl) = React.useState (Router.currentUrl ())
 
-    Html.div [
-      Components.NavBar()
-      React.router [
-        router.onUrlChanged updateUrl
-        router.children [
-          match currentUrl with
-          | [] -> Components.Home()
-          | [ "elmish-converter" ] -> ElmishConverter.TemperatureConverter()
-          | [ "converter" ] -> Converter.Converter()
-          | otherwise -> Html.h1 "Not found"
+    AppContext.MessageContext(
+      Html.div [
+        Components.NavBar()
+        React.router [
+          router.onUrlChanged updateUrl
+          router.children [
+            match currentUrl with
+            | [] -> Components.Home()
+            | [ "elmish-converter" ] -> ElmishConverter.TemperatureConverter()
+            | [ "converter" ] -> Converter.Converter()
+            | otherwise -> Html.h1 "Not found"
+          ]
         ]
       ]
-    ]
+    )

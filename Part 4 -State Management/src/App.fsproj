@@ -3,6 +3,7 @@
     <TargetFramework>net8.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="AppContext.fs" />
     <Compile Include="Converter.fs" />
     <None Include="index.html" />
     <Compile Include="Env.fs" />
