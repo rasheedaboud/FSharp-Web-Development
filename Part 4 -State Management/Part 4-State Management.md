@@ -362,13 +362,13 @@ Update the `Home` and `Router` component with the following:
     )
 ```
 
-We create a react context with the `type AppState = { message: string }` state. We then wrap the router component in the context provider. THis makes our app state globally available. 
+We create a react context with the `type AppState = { message: string }` state. We then wrap the router component in the context provider. This makes our app state globally available. 
 
-In the Home component we request the current `AppState` and are given the state as well as a function to update it.
+`React.contextProvider` has following signature `IContext<'a> *  'a * ReactElement -> ReactElement`. It takes a context some state and an element, which in our case is just a fragment. We are passing in `(state,setState)` as the generic `'a` as means to access and change the value from any child element. You could just as easily wire this up to work with an elmish architecture.   
 
-[Compositional IT](https://www.compositional-it.com/news-blog/component-communication-using-react-context/) and [Feliz](https://zaid-ajaj.github.io/Feliz/#/Feliz/React/ContextPropagation) both give wonderful examples of how to use the `useContext` hook. In our example we use the context with a `useSate` hook, however you can wire this up tho sue elmish instead.
+In the Home component we request the current `AppState` and are given the state as well as a function to update it. We also added a button in the home component to update the `AppState` dynamically.
 
-
+[Compositional IT](https://www.compositional-it.com/news-blog/component-communication-using-react-context/) and [Feliz](https://zaid-ajaj.github.io/Feliz/#/Feliz/React/ContextPropagation) both give wonderful examples of how to use the `useContext` hook. 
 
 ### Conclusion
 
