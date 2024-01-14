@@ -1,6 +1,14 @@
+## TL;DR
+
+In Part 2 of the F# web development series with Vite and Feliz, we learn how to manage environment variables in F# applications for different environments like development, testing, and production. We discuss storing sensitive data outside the code, accessing it in a type-safe manner through .env files, and conditional compilation using F# #if/#else directives. The post provides code snippets for setting up environment variables and using compiler directives to alter app behavior conditionally. This enhances app flexibility, security, and configurability. Stay tuned for the next part, which will focus on integrating Daisy UI for better UI components.
+
+## Background
+
 Welcome back to the second part of our blog series on F# web development with Vite and Feliz. In the previous post, we set up our development environment and built a basic web application. Now, we will dive into the topic of environment variables and how they can change how our app's behave in different environments.
 
-Environment variables can provide a way to store sensitive information, such as API keys or database connection strings, outside of our source code. This allows us to keep our secrets hidden and easily configure our app for different environments, such as development, testing, and production.
+For the record you should **NEVER** expose any sensitive information in a client application like a web browser! They are inherently not secure. Using environment variables in client to test or change application behavior that does not leak sensitive information is an acceptable use case.
+
+By using environment variables, we can easily configure our app's behavior in different environments without hardcoding values. This allows for greater flexibility and control of how are application behave.
 
 We will start by learning how to read environment variables in our F# code using the Vite build tool. Then, we will see how to store variables in .env files and access them in a type-safe manner. Additionally, we will explore the concept of F# conditional compilation and its role in controlling the behavior of our app based on different environments. 
 
@@ -149,8 +157,8 @@ root.render (Components.Counter())
 
 In this blog post, we explored how to use environment variables in our F# web application built with Vite and Feliz. We learned how to access environment variables defined in the .env files and store them in F# modules for type-safe access. We also looked at using F# conditional compilation to conditionally change the behavior of our app based on different environments.
 
-By using environment variables, we can easily configure our app's behavior in different environments without hardcoding values. This allows for greater flexibility and security, as we can store sensitive information in private .env files that are not checked into source control.
+By using environment variables, we can easily configure our app's behavior in different environments without hardcoding values. This allows for greater flexibility and control of how are application behave.
 
-Overall, leveraging environment variables in our F# web application helps us build more configurable and secure apps with a smoother development experience.
+Overall, leveraging environment variables in our F# web application helps us build more configurable apps with a smoother development experience.
 
 Stay tuned for Part 3 of this blog series, where we will explore how to integrate [Daisy UI](https://daisyui.com/docs/install/) into our F# web application. Daisy UI is a powerful UI library that provides ready-to-use components and styles for building beautiful user interfaces. We will see how to install and use Daisy UI within our Vite and Feliz setup, allowing us to easily create visually appealing and responsive web interfaces. Don't miss it!
