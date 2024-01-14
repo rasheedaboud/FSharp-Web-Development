@@ -4,12 +4,11 @@ open Feliz
 open App
 open Browser.Dom
 open Fable.Core.JsInterop
-open Validation
+open Validation.Yup
 
 importSideEffects "./main.css"
 
-let result = validate ()
-
+validate ()
 
 let root = ReactDOM.createRoot (document.getElementById "feliz-app")
 root.render (Components.Router())

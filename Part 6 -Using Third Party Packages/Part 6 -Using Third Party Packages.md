@@ -1,3 +1,10 @@
+
+## TL;DR 
+
+We learned how to wrap a third-party JavaScript library, Yup, in an F# application using Fable. This enables us to utilize Yup's schema builder for runtime value parsing and validation within our F# code. We also installed the Formik library, used JSX for importing Formik components, and styled them with Tailwind CSS. We then integrated a reactive form in our `Components.fs` that leverages Yup for validation and Formik for form handling, allowing us to validate user input conveniently in our F# web application.
+
+## Background
+
 Welcome back, intrepid developers and F# enthusiasts! In our web development odyssey with F#, Feliz, and Fable, we've been getting our hands dirty crafting interactive UIs, managing state elegantly, and integrating asynchronous data fetching to create responsive and dynamic applications. Our coding sails have caught a hearty wind, and we're cruising at remarkable speeds through the exciting seas of functional programming.
 
 However, every application at some point requires a unique feature or a complex component that would take extensive time and resources to build from scratch. This is where the treasure trove of third-party libraries comes to our rescue. In the vast ecosystem of open-source contributions and pre-packaged bundles of code lies the potential to extend our application's capabilities without reinventing the wheel. But how do we bring these external riches into our type-safe F# shores? Fear not, for this is the quest we embark upon today!
@@ -37,291 +44,208 @@ Lets dive right in and install the required packages.
 pnpm i yup
 ```
 
-Next lets create a new F# file called, you got it ``Validation.fs`` to hold our example using yup. 
+Next lets create a new F# file called, you got it ``Validation.fs`` to hold our example using yup.
 
-``Domain.fs``
+If you look at the shape of the [yup](https://www.npmjs.com/package/yup) object you can see how we will want to be able to call static and instance members to create a schema object.
+
+Here is what that will look lke in F#:
+
 ```fsharp
-module Domain
-
-type User =
-  { id: int
-    first_name: string
-    last_name: string
-    email: string }
+module Yup =
+  /// We add a static and abstract member to support the method chaining we expect
+  /// when using the yup object in javascript.
+  [<ImportAll("yup")>]
+  [<Interface>]
+  type Yup =
+    static member object(schema: 'a) : Yup = jsNative
+    static member string() : Yup = jsNative
+    abstract member string: unit -> Yup
+    static member min(?min: int, ?message: string) : Yup = jsNative
+    abstract member min: ?min: int * ?message: string -> Yup
+    static member max(?max: int, ?message: string) : Yup = jsNative
+    abstract member max: ?max: int * ?message: string -> Yup
+    static member required(?message: string) : Yup = jsNative
+    abstract member required: ?message: string -> Yup
+    static member email(?message: string) : Yup = jsNative
+    abstract member email: ?message: string -> Yup
+    abstract member validate: 'a -> JS.Promise<obj>
 ```
 
-``FableFetch.fs``
+This more or less replicates the interface we need to use the example listed in their docs. We can now use this to build a schema object and validate objects.
+
+We use the `[<ImportAll("yup")>]` to replicate `import * as Yup from 'yup` in javascript. The calls to `jsNative` you see, mean take whatever you give me add pass it through to native javascript. I would strongly encourage you to read the [fable docs](https://fable.io/docs/javascript/features.html#jsnative) on JS interop as well as [this](https://medium.com/@zaid.naom/f-interop-with-javascript-in-fable-the-complete-guide-ccc5b896a59f) blog post by [Zaid](https://github.com/Zaid-Ajaj), both are invaluable learning resources.
+
+I also found it very useful to dig through some of the open source packages to see how the authors use some of Fables features to wrap and call javascript.
+
+Now that we have defined and imported the necessary javascript we can use this interface to define our schema:
+
 ```fsharp
-module FableFetch
+  /// Define our schema
+  let schema =
+    Yup.object (
+      {| firstName =
+          Yup
+            .string()
+            .min(2, "Too Short!")
+            .max(50, "Too Long!")
+            .required ("Value is required.")
+         lastName =
+          Yup
+            .string()
+            .min(2, "Too Short!")
+            .max(50, "Too Long!")
+            .required ("Value is required.")
+         email = Yup.string().email("Invalid email.").required ("Value is required.") |}
+    )
 
-open Domain
-open Feliz
-open Feliz.DaisyUI
-open Fetch
+  ///Define object to validate
+  let data =
+    {| firstName = "Rasheed"
+       lastName = "Aboud"
+       email = "this is not an email" |}
 
-[<ReactComponent>]
-let FecthData () =
-
-  let (users, setUsers) = React.useState ([])
-
-  let loadUsers () =
+  ///Validate and output result
+  let validate () =
     promise {
-      let! response = fetch "https://random-data-api.com/api/v2/users?size=10" []
-      if response.Ok then
-        let! users = response.json<User list> ()
-        setUsers (users)
+      let! result = schema.validate (data)
+      console.log (result)
     }
-    //we need this to make useEffect happy...
     |> Promise.start
-
-
-  React.useEffect (loadUsers, [||])
-
-  Html.div [
-    if users = [] then
-      Html.div [
-        prop.className "absolute right-1/2 bottom-1/2  transform translate-x-1/2 translate-y-1/2"
-        prop.children [
-          Daisy.loading [
-            loading.spinner
-            loading.lg
-          ]
-        ]
-      ]
-
-    else
-      for user in users do
-      Daisy.card [
-        card.bordered
-        prop.children [
-            Daisy.cardBody [
-                Daisy.cardTitle (sprintf "%s %s" user.first_name user.last_name)
-                Html.p user.email
-            ]
-        ]
-      ]
-  ]
 ```
 
-Pretty straight forward stuff, if you squint a little bit its barely noticeable that this is not a standard javascript react component. 
+If you log the results of the `validate()` call in the console you will see that we get an error:
 
-We create an async function ``loadUsers`` which returns a promise that contains a list of users. We then load the users in the state variable ``users``. We wrap this function in a ``useEffect`` hook with an empty array so that it is only ever called once.
+```console
+Uncaught (in promise) ValidationError: Invalid email.
+    at createError (index.esm.js:304:21)
+    at handleResult (index.esm.js:321:104)
+    at validate (index.esm.js:344:5)
+    at StringSchema.runTests (index.esm.js:709:7)
+    at index.esm.js:664:12
+    at nextOnce (index.esm.js:695:7)
+    at finishTestRun (index.esm.js:714:11)
+    at handleResult (index.esm.js:321:124)
+    at validate (index.esm.js:344:5)
+    at StringSchema.runTests (index.esm.js:709:7)
+```
 
-Make the following changes to the `Components.fs` file:
+Success! We now have the capability to use this anywhere on our F# code to validate objects.
+
+At this point I want to point out there are much more powerfull validation options available in F#, one for example is [FsToolkit.ErrorHandling](https://demystifyfp.gitbook.io/fstoolkit-errorhandling). Composition IT wrote an excellent blog post about how to use it [here](https://www.compositional-it.com/news-blog/validation-with-f-5-and-fstoolkit/).
+
+All I was trying to illustrate is how easy it is to pull in a react library from the community and use it.
+
+The next component I would like to bring in if a form validator called [Formik](https://formik.org/). I've used this for years in react as a declarative form validation library. This time however we will just use a JSX component for the import along with a bit of tailwind to spruce up the generic formik fields.
+
+First add npm package.
+
+```console
+pnpm i formik
+```
+
+Next lets create a new module in the `Validation.fs` file.
+
+```fsharp
+module Formik =
+
+  type SignUpFormProps<'a> = { onSubmit: 'a -> unit }
+
+  [<ReactComponent>]
+  let SignUpForm (props: SignUpFormProps<'a>) =
+    JsInterop.import "Formik" "formik"
+    JsInterop.import "Form" "formik"
+    JsInterop.import "Field" "formik"
+
+    let initialValues =
+      {| firstName = ""
+         lastName = ""
+         email = "" |}
+
+    let schema = Yup.schema
+
+    JSX.jsx
+      """
+       <div className='m-10 p-5 w-1/2 rounded overflow-hidden shadow-lg'>
+        <h1 className='m-5 uppercase font-black'>Signup</h1>
+        <Formik
+          initialValues={initialValues}
+          validationSchema={schema}
+          onSubmit={props.onSubmit}
+        >
+          {({ errors, touched }) => (
+            <Form>
+
+              <label htmlFor='firstName' className='text-sm'>First Name</label>
+              <Field name="firstName" className='block w-full rounded-md border-0 py-1.5 pl-7 pr-20 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-500 sm:text-sm sm:leading-6'/>
+              {errors.firstName && touched.firstName ? (
+                <div className='text-red-500 text-xs mb-5'>**{errors.firstName}</div>
+              ) : null}
+
+              <label htmlFor='lastName' className='text-sm'>Last Name</label>
+              <Field name="lastName" className='block w-full mt-5 rounded-md border-0 py-1.5 pl-7 pr-20 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-500 sm:text-sm sm:leading-6'/>
+              {errors.lastName && touched.lastName ? (
+                <div className='text-red-500 text-xs mb-5'>**{errors.lastName}</div>
+              ) : null}
+
+              <label htmlFor='email' className='text-sm'>Email</label>
+              <Field name="email" type="email" className='peer block w-full mt-5 rounded-md border-0 py-1.5 pl-7 pr-20 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-500 sm:text-sm sm:leading-6' />
+              {errors.email && touched.email ?
+                <div className='peer-invalid text-red-500 text-xs'>**{errors.email}</div>
+                : null}
+
+              <button type="submit" className="btn btn-sm btn-primary mt-10">Submit</button>
+            </Form>
+          )}
+        </Formik>
+      </div>
+    """
+```
+
+Ok that was alot of code! Let's break it down.
+
+First thing I did was create `type SignUpFormProps<'a> = { onSubmit: 'a -> unit }`, this will allow us to pass in a function from outside the form to do something with values after validation.
+
+Next we create a `SignUpForm` component and import the required items from the `formik` library. In this case `Formik,Form` and `Field`. Using an example copied right out the Formik docs,  we paste the JSX directly into our string template. Although it does not come through well in this markdown we do get code suggestions thanks to [Highlight templates in F#](https://marketplace.visualstudio.com/items?itemName=alfonsogarciacaro.vscode-template-fsharp-highlight). You will have to do some formatting to get the JSX to look ok, but thats a very small price to pay.
+
+Next we create our `initialValues` and bring in our `schema` we defined in our Yup module, and we pass these along with our `onSubmit` handler to Formik.
+
+I also added some tailwind styles to the html, I do not consider myself a UI/UX export but I think it looks ok ish.
+
+With all this wired up we now have a working form we can use to validate a users information.
+
+Let's head back to our good old `Components.fs` and update the `Home` component:
 
 ```fsharp
   [<ReactComponent>]
   static member Home() =
-    Html.div [
-      prop.className "container mx-auto"
-      prop.children [
-        Html.h1 "Home Page"
-        Daisy.button.a [
-          prop.href "/#converter"
-          prop.text "Converter"
-        ]
-        Daisy.button.a [
-          prop.href "/#elmish-converter"
-          prop.text "Elmish Converter"
-        ]
-        Daisy.button.a [
-          prop.href "/#fable-fetch"
-          prop.text "Fable.Fetch"
-        ]
-      ]
-    ]
 
-  [<ReactComponent>]
-  static member Router() =
-    let (currentUrl, updateUrl) = React.useState (Router.currentUrl ())
+    let onSubmit (values) =
+      let data = Fable.Core.JS.JSON.stringify (values)
+      Browser.Dom.window.alert (data)
 
-    Html.div [
-      Components.NavBar()
-      React.router [
-        router.onUrlChanged updateUrl
-        router.children [
-          match currentUrl with
-          | [] -> Components.Home()
-          | [ "elmish-converter" ] -> ElmishConverter.TemperatureConverter()
-          | [ "converter" ] -> Converter.Converter()
-          | [ "fable-fetch" ] -> FableFetch.FecthData()
-          | otherwise -> Html.h1 "Not found"
-        ]
-      ]
-    ]
+    Html.div
+      [ prop.className "container mx-auto"
+        prop.children
+          [ Html.h1 "Home Page"
+            Daisy.button.a [ prop.href "/#converter"; prop.text "Converter" ]
+            Daisy.button.a [ prop.href "/#elmish-converter"; prop.text "Elmish Converter" ]
+            Daisy.button.a [ prop.href "/#fable-fetch"; prop.text "Fable.Fetch" ]
+            Daisy.button.a [ prop.href "/#feliz-deferred"; prop.text "Feliz.Deferred" ]
+            Formik.SignUpForm { onSubmit = onSubmit } |> toReact ] ]
 ```
 
-Run the app and click on button `Fable.Fetch`. You should see a loading spinner for a second followed by a list of users.
+Run the app with `npm start`, and voila! We have a react form using Yup and Formik!
 
-![Fable Fetch](https://rasheedaboudblogstorage.blob.core.windows.net/blogs/fablefetchclip.gif?sp=r&st=2024-01-06T04:17:17Z&se=2050-01-06T12:17:17Z&spr=https&sv=2022-11-02&sr=b&sig=8KFjMliIEfjo7xqeE9DrL39MIJGk4PS2qATkdKaYB%2BQ%3D)
-
-[Fable.Fetch](https://github.com/fable-compiler/fable-fetch) is incredibly easy to use. Just remember that this example has no error handling. 
-
-In the repo I give another example using an `async` computation block instead of a `promise`  however the end result is the same. If you prefer not to pull in Fable.Promise package then using `async` work fine.
-
-## Feliz.UseDeferred
-
-Let'c create a file called `FelizDeferred.fs` and install the required nuget package.
-
-```console
-femto install Feliz.UseDeferred ./src
-```
-
-We can re-use our domain model from previous however we will quickly pull out the logic to load users into its own module, this is 100% not required its just something i like to do.
-
-
-```fsharp
-module Domain
-open Fable.Core
-open Fetch
-
-type User =
-  { id: int
-    first_name: string
-    last_name: string
-    email: string }
-
-[<RequireQualifiedAccess>]
-module User =
-  //Required for useDeferred
-  let loadUsersAsync =
-    async {
-      let! response =
-        fetch "https://random-data-api.com/api/v2/users?size=10" []
-        |> Async.AwaitPromise
-
-      if response.Ok then
-        let! users = response.json<User list> () |> Async.AwaitPromise
-        return users
-      else
-        return []
-    }
-  //Required for out Fetch example
-  let loadUsers setUsers () =
-    promise {
-      let! response = fetch "https://random-data-api.com/api/v2/users?size=10" []
-
-      if response.Ok then
-        let! users = response.json<User list> ()
-        setUsers (users)
-    }
-    |> Promise.start
-```
-Update our `FetchData.fs` to use our new `loadUsers` function:
-
-```fsharp
-open Domain
-
-[<ReactComponent>]
-let FecthData () =
-
-  let (users, setUsers) = React.useState ([])
-  
-  React.useEffect (User.loadUsers setUsers, [||])
-
-  ...
-```
-
-Now we can go back to our `FelizDeferred` component and finish it off:
-
-```fsharp
-module FelizDeferred
-
-open Feliz
-open Feliz.UseDeferred
-open Feliz.DaisyUI
-open Domain
-
-let Spinner () =
-  Html.div [
-    prop.className "absolute right-1/2 bottom-1/2  transform translate-x-1/2 translate-y-1/2"
-    prop.children [
-      Daisy.loading [
-        loading.spinner
-        loading.lg
-      ]
-    ]
-  ]
-
-let Error (message: string) =
-  Daisy.card [
-    card.bordered
-    prop.children [
-      Daisy.cardBody [
-        Daisy.cardTitle "An error occurred!"
-        Html.p message
-      ]
-    ]
-  ]
-
-let UserCard (props: {| users: User list |}) =
-  Html.div [
-    for user in users do
-      Daisy.card [
-        card.bordered
-        prop.children [
-          Daisy.cardBody [
-            Daisy.cardTitle (sprintf "%s %s" user.first_name user.last_name)
-            Html.p user.email
-          ]
-        ]
-      ]
-  ]
-
-[<ReactComponent>]
-let Deferred () =
-  let data = React.useDeferred (User.loadUsersAsync, [||])
-
-  match data with
-  | Deferred.HasNotStartedYet -> Html.none
-  | Deferred.InProgress -> Spinner()
-  | Deferred.Failed error -> Error error.Message
-  | Deferred.Resolved content -> UserCard {| users = content |}
-```
-
-Add button to navigate in our `Home` component
-
-```fsharp
-Daisy.button.a [
-    prop.href "/#feliz-deferred"
-    prop.text "Feliz.Deferred"
-]
-```
-
-And update our router with our new page:
-
-```fsharp
-  [<ReactComponent>]
-  static member Router() =
-    let (currentUrl, updateUrl) = React.useState (Router.currentUrl ())
-
-    Html.div [
-      Components.NavBar()
-      React.router [
-        router.onUrlChanged updateUrl
-        router.children [
-          match currentUrl with
-          | [] -> Components.Home()
-          | [ "elmish-converter" ] -> ElmishConverter.TemperatureConverter()
-          | [ "converter" ] -> Converter.Converter()
-          | [ "fable-fetch" ] -> FableFetch.FecthData()
-          | [ "feliz-deferred" ] -> FelizDeferred.Deferred()
-          | otherwise -> Html.h1 "Not found"
-        ]
-      ]
-    ]
-```
-
-Run the app and check out the new page! It should render out exactly the same as out previous component.
+![Formik Example](https://rasheedaboudblogstorage.blob.core.windows.net/blogs/formikclip.gif?sp=r&st=2024-01-14T23:48:40Z&se=2050-01-15T07:48:40Z&spr=https&sv=2022-11-02&sr=b&sig=5uCKKxo6ottlwTJOzSJsDReLqoNzcoTEoFzARNZhcjM%3D)
 
 ## Summary
 
-Hey there! In the latest chapter of our web development journey with F# using Feliz and Fable, we took a thrilling dive into the world of asynchronicity and data fetching. We explored how to make our web application come alive by reaching out to external services for fresh, dynamic data. I showed you two awesome methods for doing this: Fable.Fetch and React.useDeferred.
+In this exploration, we've ventured into the realm of integrating third-party JavaScript libraries into an F# web application powered by Feliz and Fable. We specifically focused on wrapping a JavaScript validation library called Yup and a form management library named Formik, both popular within the React ecosystem.
 
-We started by setting sail with Fable.Fetch, installed the necessary packages, and created a nifty example to fetch random user data from an API. I walked you through creating a `loadUsers` async function wrapped in a `useEffect` hook to load the users once and populate our app's UI with the data received.
+To begin, we installed Yup through npm and created an F# interface to define the methods and properties we required from the Yup library. We used Fable's JS interop features to map the Yup validation schema to F# types, ensuring a fluent and type-safe experience when defining validation rules.
 
-Then, I introduced the magical world of React.useDeferred. We created a new component, separated our fetching logic, and managed to render similar output to our Fable.Fetch example, with beautiful loading state management right out of the box!
+We then installed Formik and directly imported its JSX components (Formik, Form, and Field) into our F# codebase. We crafted a `SignUpForm` component in F# that employed Formik for form handling, used Yup for validation, and added Tailwind CSS for styling. We also defined `SignUpFormProps<'a>` in F# to allow the passing of an external `onSubmit` function to handle form submissions.
 
-Both methods were super easy and fun to implement, adding that connectedness and richness to our F# web application. In our next post, we'll raise the stakes even higher as we learn how to wrap third-party components into our app. It's going to be fantastic, and I can't wait to show you how!
+Finally, we integrated the `SignUpForm` into our existing `Components.fs` file, providing an `onSubmit` function that utilizes browser alerts to display the result of form submissions.
 
-Stay tuned, and keep it upbeat, as our adventure only gets more exciting from here!
+Through this journey, we've demonstrated the power and flexibility of F#, Feliz, and Fable in bridging the gap between the robust F# functional programming paradigm and the rich JavaScript ecosystem, enabling developers to leverage the best of both worlds in their web applications.

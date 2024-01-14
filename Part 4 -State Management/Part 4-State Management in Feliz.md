@@ -1,3 +1,9 @@
+## TL;DR
+
+This article provides a tutorial on managing state in a web application using F# with Feliz and Fable. It demonstrates two methods of state management—using the `useElmish` hook for an Elmish pattern approach and the `useState` hook for more direct state management. The post walks through the creation of a simple temperature converter application as an example. The `useElmish` method employs a model-update-view architecture that's more suitable for complex applications. In contrast, the `useState` method handles state changes within the component and may be favored for simpler state requirements. The article also introduces `useContext` for global state access and updates in a React application using F#. All code examples are available in the article's repository, along with instructions on how to run them. The post is part of a series on F# web development and aims to progressively build out features in a web application.
+
+## Background
+
 Welcome back to our series on building web applications using F# with Feliz and Fable! In our previous post, we delved into constructing a UI using the Feliz.DaisyUI library. Today, we will be moving a step further into the realm of interactivity by introducing state management to our application.
 
 There are a few ways this can be accomplished in a Javascript react application, to name a few we have the inbuilt
