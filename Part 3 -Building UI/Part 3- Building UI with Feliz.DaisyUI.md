@@ -1,3 +1,9 @@
+## TL;DR
+
+In this part of the series, we look into integrating Feliz.DaisyUI into an F# web app to leverage its variety of beautiful UI components based on Tailwind CSS and DaisyUI. The process includes installing the Feliz.DaisyUI library, configuring it, and updating the app components to use Feliz.DaisyUI's functional programming approach for creating a visually appealing user interface. We also walk through the setup of Tailwind CSS and the DaisyUI plugin, importing CSS styles, and making some adjustments to the app's components for a better UI structure.
+
+## Background
+
 In this third part of the series, we will explore how to integrate Feliz.DaisyUI into our web app, [Feliz.DaisyUI](https://dzoukr.github.io/Feliz.DaisyUI/#/) is a library that provides a set of UI components and utilities based on the DaisyUI framework, which is built on top of Tailwind CSS.
 
 By integrating Feliz.DaisyUI, we can easily create beautiful and responsive UI components in our F# web app. We'll be able to leverage the power of Feliz's functional programming approach and DaisyUI's utility-focused CSS classes to create stunning UIs with minimal effort.
@@ -45,33 +51,35 @@ module JsxHelpers =
 
 
 type Components =
-    [<ReactComponent>]
-    static member Home() =
-        Daisy.navbar
-            [ prop.className "mb-2 shadow-lg bg-neutral text-neutral-content rounded-box"
-              prop.children
-                  [ Html.div
-                        [ prop.className "flex-none"
-                          prop.children
-                              [ Daisy.button.button
-                                    [ button.square
-                                      button.ghost
-                                      prop.children
-                                          [ Html.i [ prop.className "fa-solid fa-heart" ++ color.textSuccess ] ] ] ] ]
-                    Html.div
-                        [ prop.className "flex-1 px-2 mx-2"
-                          prop.children [ Html.span [ prop.className "text-lg font-bold"; prop.text "With one icon" ] ] ] ] ]
+  [<ReactComponent>]
+  static member Home() =
+    Daisy.navbar
+      [ prop.className "mb-2 shadow-lg bg-neutral text-neutral-content rounded-box"
+        prop.children
+          [ Html.div
+              [ prop.className "flex-none"
+                prop.children
+                  [ Daisy.button.button
+                      [ button.square
+                        button.ghost
+                        prop.children
+                          [ Html.i [ prop.className "fa-solid fa-heart" ++ color.textSuccess ] ] ] ] ]
+            Html.div
+              [ prop.className "flex-1 px-2 mx-2"
+                prop.children [ Html.span [ 
+                  prop.className "text-lg font-bold"; 
+                  prop.text "With one icon" ] ] ] ] ]
 
-    [<ReactComponent>]
-    static member Router() =
-        let (currentUrl, updateUrl) = React.useState (Router.currentUrl ())
+  [<ReactComponent>]
+  static member Router() =
+      let (currentUrl, updateUrl) = React.useState (Router.currentUrl ())
 
-        React.router
-            [ router.onUrlChanged updateUrl
-              router.children
-                  [ match currentUrl with
-                    | [] -> Components.Home()
-                    | otherwise -> Html.h1 "Not found" ] ]
+      React.router
+        [ router.onUrlChanged updateUrl
+          router.children
+            [ match currentUrl with
+              | [] -> Components.Home()
+              | otherwise -> Html.h1 "Not found" ] ]
 
 ```
 
@@ -170,40 +178,39 @@ module JsxHelpers =
 
 
 type Components =
-    [<ReactComponent>]
-    static member NavBar() =
-        Daisy.navbar
-            [ prop.className "mb-2 shadow-lg bg-neutral text-neutral-content rounded-box"
-              prop.children
-                  [ Html.div
-                        [ prop.className "flex-none"
-                          prop.children
-                              [ Daisy.button.button
-                                    [ button.square
-                                      button.ghost
-                                      prop.children
-                                          [ Html.i [ prop.className "fa-solid fa-gear" ++ color.textSuccess ] ] ] ] ]
-                    Html.div
-                        [ prop.className "flex-1 px-2 mx-2"
-                          prop.children [ Html.span [ prop.className "text-lg font-bold"; prop.text "Feliz Converter" ] ] ] ] ]
+  [<ReactComponent>]
+  static member NavBar() =
+    Daisy.navbar
+      [ prop.className "mb-2 shadow-lg bg-neutral text-neutral-content rounded-box"
+        prop.children
+          [ Html.div
+              [ prop.className "flex-none"
+                prop.children
+                  [ Daisy.button.button
+                      [ button.square
+                        button.ghost
+                        prop.children [ Html.i [ prop.className "fa-solid fa-gear" ++ color.textSuccess ] ] ] ] ]
+            Html.div
+              [ prop.className "flex-1 px-2 mx-2"
+                prop.children [ Html.span [ prop.className "text-lg font-bold"; prop.text "Feliz Converter" ] ] ] ] ]
 
-    [<ReactComponent>]
-    static member Home() =
-        Html.div[prop.className "container mx-auto"
-                 prop.children [ Html.h1 "Home Page" ]]
+  [<ReactComponent>]
+  static member Home() =
+    Html.div[prop.className "container mx-auto"
+             prop.children [ Html.h1 "Home Page" ]]
 
-    [<ReactComponent>]
-    static member Router() =
-        let (currentUrl, updateUrl) = React.useState (Router.currentUrl ())
+  [<ReactComponent>]
+  static member Router() =
+    let (currentUrl, updateUrl) = React.useState (Router.currentUrl ())
 
-        Html.div
-            [ Components.NavBar()
-              React.router
-                  [ router.onUrlChanged updateUrl
-                    router.children
-                        [ match currentUrl with
-                          | [] -> Components.Home()
-                          | otherwise -> Html.h1 "Not found" ] ] ]
+    Html.div
+      [ Components.NavBar()
+        React.router
+          [ router.onUrlChanged updateUrl
+            router.children
+              [ match currentUrl with
+                | [] -> Components.Home()
+                | otherwise -> Html.h1 "Not found" ] ] ]
 
 ```
 Then change which component get loaded initially in ```Main.fs```:
@@ -218,6 +225,7 @@ importAll "./main.css"
 let root = ReactDOM.createRoot (document.getElementById "feliz-app")
 root.render (Components.Router())
 ```
+
 There now our app shell is perfect! We have a navbar that will persist between page changes and a nice home page to usto start building our app.
 
 ![daisy ui app bar](https://rasheedaboudblogstorage.blob.core.windows.net/blogs/appbar2.png?sp=r&st=2024-01-05T17:21:18Z&se=2050-01-06T01:21:18Z&spr=https&sv=2022-11-02&sr=b&sig=U%2B8VKyVy%2FNrh5IzeFwoZ8%2BdzFUO92MhpI7Fptnc43OI%3D)
