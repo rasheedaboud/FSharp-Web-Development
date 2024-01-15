@@ -1,7 +1,7 @@
 
 ## TL;DR 
 
-We learned how to wrap a third-party JavaScript library, Yup, in an F# application using Fable. This enables us to utilize Yup's schema builder for runtime value parsing and validation within our F# code. We also installed the Formik library, used JSX for importing Formik components, and styled them with Tailwind CSS. We then integrated a reactive form in our `Components.fs` that leverages Yup for validation and Formik for form handling, allowing us to validate user input conveniently in our F# web application.
+In this post we learned how to wrap a third-party JavaScript library, Yup, in an F# application using Fable. This enables us to utilize Yup's schema builder for runtime value parsing and validation within our F# code. We also installed the Formik library, used JSX for importing Formik components, and styled them with Tailwind CSS. We then integrated a reactive form in our `Components.fs` that leverages Yup for validation and Formik for form handling, allowing us to validate user input conveniently in our F# web application.
 
 ## Background
 
