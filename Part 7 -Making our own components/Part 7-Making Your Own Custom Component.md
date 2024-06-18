@@ -1,8 +1,17 @@
-# Crafting a Custom ComboBox in F# with DaisyUI and TailwindCSS
+## TL;DR
+In this tutorial, we crafted a custom ComboBox component using F#, DaisyUI, and TailwindCSS, providing a stylish and functional UI element. We covered state management, event handling, and dynamic option rendering to ensure smooth interaction. The ComboBox was integrated into a web application, demonstrating the synergy of functional programming and modern web tools.
 
-Welcome back, intrepid developers and F# enthusiasts! After taking some time off to focus on a new job. I thought it was time to continue our journey. 
+## Crafting a Custom ComboBox in F# with DaisyUI and TailwindCSS
+
+Welcome back, intrepid developers and F# enthusiasts! After taking some time off to focus on a new job. I thought it was time to continue our journey.
+
+I am currently building a PWA that will eventually make its way to the android app store. The app performs flange face assessments to a construction code used in my industry and I needed a simple dropdown component. I normally would leverage a third party control package, however I felt in this instance it added a ton of bloat for something as simple as a combobox.
 
 Today, we’ll venture into the exciting realm of user interface components—specifically, crafting a custom ComboBox. Leveraging the elegance of DaisyUI and the flexibility of TailwindCSS, we’ll create a ComboBox that is both stylish and functional.
+
+I will only show you minimal code necessary to get a function combobox up and running, there are definitely other features you could add (accessibility!) that would make the control better overall.
+
+## Background
 
 A ComboBox (or dropdown) is a fundamental UI element that allows users to select an item from a list of options or input their choice directly. In this tutorial, we’ll guide you through setting up a ComboBox component step-by-step using F# within our static type-safe environment.
 
@@ -20,45 +29,9 @@ Ensure you have the following setup ready before we start:
 
 ## Setting Up
 
-Begin by creating a new F# file called `ComboBox.fs` where we'll be developing our ComboBox component. Make sure you have TailwindCSS and DaisyUI installed and correctly configured in your project, as these libraries will provide us with the necessary styling and components.
+Begin by creating a new F# file called `ComboBox.fs` where we'll be developing our ComboBox component. Make sure you have TailwindCSS and DaisyUI installed and correctly configured in your project, as these libraries will provide us with the necessary styling and components. You should be able to grab code from [Part 6](https://github.com/rasheedaboud/FSharp-Web-Development/tree/main/Part%206%20-Using%20Third%20Party%20Packages) and build from there.
 
-If you haven't already, install the required packages:
-
-```bash
-pnpm i tailwindcss daisyui
-```
-
-Configure `postcss.config.js` to include TailwindCSS and DaisyUI:
-
-```js
-module.exports = {
-  plugins: {
-    tailwindcss: {},
-    autoprefixer: {},
-    daisyui: {},
-  },
-}
-```
-
-And set up your `tailwind.config.js`:
-
-```js
-module.exports = {
-  content: ["./src/**/*.{fs,fsx}", "./public/index.html"],
-  theme: {
-    extend: {},
-  },
-  plugins: [require("daisyui")],
-}
-```
-
-Set up Tailwind directives in your CSS file (`styles.css`):
-
-```css
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-```
+If you want to start from scratch you can follow my previous post [PART 3-BUILDING UI WITH FELIZ.DAISYUI](https://rasheedaboud.github.io/blog/part-3-building-ui-with-feliz.daisyui/).
 
 ## Creating the ComboBox Component
 
@@ -199,21 +172,31 @@ let ComboBox (props: ComboBoxProps<'a>) =
 
 ### Explanation
 
-1. **State Management**: We use `React.useState` to manage the selected option, initial data, filtered data etc.
-2. **Event Handling**: we use the `onClick` of the individual `<li>` elements to update the selected option and current input values if user uses thier mouse or touch to select a value. Whereas we use the `onChange` and `onFocus` and `onKeyDown` events to filter and update the dropdown when user is using a keyboard. Together they allow a user to easily filter and select a value. 
+1. **Props**: We first define the inputs that we expect our new control to use, a generic `data` parameter along with `label`,`placeholder` and a callback for when an item is selected.
+
+``` fsharp
+type ComboBoxProps<'a> =
+  { data: 'a []
+    label: string
+    palceholder: string
+    selected: string -> unit }
+```
+
+2. **State Management**: We use `React.useState` to manage the selected option, initial data, filtered data etc.
+3. **Event Handling**: we use the `onClick` of the individual `<li>` elements to update the selected option and current input values if user uses their mouse or touch to select a value. Whereas we use the `onChange` and `onFocus` and `onKeyDown` events to filter and update the dropdown when user is using a keyboard. Together they allow a user to easily filter and select a value.
 
 By setting `prop.value input` we tell the browser to show a clear icon, that allows the user to quickly clear value in the text input.
 
 ![alt text](https://rasheedaboudblogstorage.blob.core.windows.net/blogs/dropdown_clear.png?sp=r&st=2024-06-17T23:49:50Z&se=2099-06-18T07:49:50Z&spr=https&sv=2022-11-02&sr=b&sig=ThSMizywiZTkS5jHZSNzQXiGIu%2BGJjiQfDqEo1uoeQc%3D)
 
-3. **DaisyUI Dropdown Styling**:  As we loop through each item in the dropdown list we compare the index to the selected value index and conditionally apply `active` class to highlight the selected `<li>` item.
-4. **Dynamic Option Rendering**: We loop through the provided options and render each as a clickable item within the dropdown.
+4.**DaisyUI Dropdown Styling**:  As we loop through each item in the dropdown list we compare the index to the selected value index and conditionally apply `active` class to highlight the selected `<li>` item.
+5.**Dynamic Option Rendering**: We loop through the provided options and render each as a clickable item within the dropdown.
 
 ### Integrating ComboBox in Your App
 
-Now that we've created our `ComboBox` component, let’s integrate it into our main application. We'll add a new page that utilizes this ComboBox.
+Now that we've created our `ComboBox` component, let’s integrate it into our main application. We'll add the new component to our homepage for simplicity.
 
-Update your `Components.fs` with a new `ComboBox` component:
+Update your `Components.fs` with a new `ComboBox` component and add the required input props:
 
 ```fsharp
 module Components
@@ -284,7 +267,7 @@ open ComboBox
 
 With all the pieces in place, run your application and navigate to the ComboBox page. You should see a beautifully rendered ComboBox using DaisyUI and TailwindCSS styles, allowing users to select from the provided options or input their value.
 
-```bash
+```console
 pnpm start
 ```
 
